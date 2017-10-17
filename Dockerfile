@@ -1,6 +1,6 @@
 FROM docker.io/node:latest
 
-RUN npm install -g mocha istanbul nodemon gulp bower mocha-bamboo-reporter tick
+RUN npm install -g mocha istanbul nodemon gulp bower mocha-bamboo-reporter tick grunt grunt-cli
 
 WORKDIR /srv/app
 
