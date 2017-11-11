@@ -1,4 +1,4 @@
-FROM docker.io/node:latest
+FROM docker.io/node:alpine
 
 RUN npm install -g mocha istanbul nodemon gulp bower mocha-bamboo-reporter tick grunt grunt-cli
 
