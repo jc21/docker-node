@@ -5,29 +5,34 @@ pipeline {
   }
   agent any
   environment {
-    IMAGE_NAME      = "node"
-    TEMP_IMAGE_NAME = "node-build_${BUILD_NUMBER}"
+    IMAGE_NAME          = "node"
+    TEMP_IMAGE_NAME     = "node-build_${BUILD_NUMBER}"
+    TEMP_IMAGE_NAME_ARM = "node-armhf-build_${BUILD_NUMBER}"
   }
   stages {
-    stage('Prepare') {
-      steps {
-        sh 'docker pull docker.io/node:9-slim'
-      }
-    }
     stage('Build') {
-      steps {
-        sh 'docker build --squash --compress -t $TEMP_IMAGE_NAME .'
+      parallel {
+        stage('Build') {
+          steps {
+            sh 'docker build --pull --no-cache --squash --compress -t $TEMP_IMAGE_NAME .'
+          }
+        }
+        stage('Arm') {
+          steps {
+            sh 'docker build --pull --no-cache --squash --compress -t $TEMP_IMAGE_NAME_ARM armhf/'
+          }
+        }
       }
     }
     stage('Publish') {
       steps {
         sh 'docker tag $TEMP_IMAGE_NAME $DOCKER_PRIVATE_REGISTRY/$IMAGE_NAME:latest'
         sh 'docker push $DOCKER_PRIVATE_REGISTRY/$IMAGE_NAME:latest'
+
+        sh 'docker tag $TEMP_IMAGE_NAME_ARM $DOCKER_PRIVATE_REGISTRY/$IMAGE_NAME:armhf'
+        sh 'docker push $DOCKER_PRIVATE_REGISTRY/$IMAGE_NAME:armhf'
       }
     }
-  }
-  triggers {
-    bitbucketPush()
   }
   post {
     success {
@@ -39,7 +44,7 @@ pipeline {
       sh 'figlet "FAILURE"'
     }
     always {
-      sh 'docker rmi $TEMP_IMAGE_NAME'
+      sh 'docker rmi $TEMP_IMAGE_NAME $TEMP_IMAGE_NAME_ARM'
     }
   }
 }
