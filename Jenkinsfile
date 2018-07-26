@@ -12,12 +12,12 @@ pipeline {
   stages {
     stage('Build') {
       parallel {
-        stage('Build') {
+        stage('x86_64') {
           steps {
             sh 'docker build --pull --no-cache --squash --compress -t $TEMP_IMAGE_NAME .'
           }
         }
-        stage('Arm') {
+        stage('armhf') {
           steps {
             sh 'docker build --pull --no-cache --squash --compress -t $TEMP_IMAGE_NAME_ARM armhf/'
           }
