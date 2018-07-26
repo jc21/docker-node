@@ -14,23 +14,29 @@ pipeline {
       parallel {
         stage('x86_64') {
           steps {
-            sh 'docker build --pull --no-cache --squash --compress -t $TEMP_IMAGE_NAME .'
+            ansiColor('xterm') {
+              sh 'docker build --pull --no-cache --squash --compress -t $TEMP_IMAGE_NAME .'
+            }
           }
         }
         stage('armhf') {
           steps {
-            sh 'docker build --pull --no-cache --squash --compress -t $TEMP_IMAGE_NAME_ARM armhf/'
+            ansiColor('xterm') {
+              sh 'docker build --pull --no-cache --squash --compress -t $TEMP_IMAGE_NAME_ARM armhf/'
+            }
           }
         }
       }
     }
     stage('Publish') {
       steps {
-        sh 'docker tag $TEMP_IMAGE_NAME $DOCKER_PRIVATE_REGISTRY/$IMAGE_NAME:latest'
-        sh 'docker push $DOCKER_PRIVATE_REGISTRY/$IMAGE_NAME:latest'
+        ansiColor('xterm') {
+          sh 'docker tag $TEMP_IMAGE_NAME $DOCKER_PRIVATE_REGISTRY/$IMAGE_NAME:latest'
+          sh 'docker push $DOCKER_PRIVATE_REGISTRY/$IMAGE_NAME:latest'
 
-        sh 'docker tag $TEMP_IMAGE_NAME_ARM $DOCKER_PRIVATE_REGISTRY/$IMAGE_NAME:armhf'
-        sh 'docker push $DOCKER_PRIVATE_REGISTRY/$IMAGE_NAME:armhf'
+          sh 'docker tag $TEMP_IMAGE_NAME_ARM $DOCKER_PRIVATE_REGISTRY/$IMAGE_NAME:armhf'
+          sh 'docker push $DOCKER_PRIVATE_REGISTRY/$IMAGE_NAME:armhf'
+        }
       }
     }
   }
