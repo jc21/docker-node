@@ -12,7 +12,11 @@ RUN apt-get update \
     && apt-get clean \
     && npm config set unsafe-perm true \
     && npm install -g mocha istanbul nodemon gulp mocha-bamboo-reporter tick grunt grunt-cli \
-    && curl -o- -L https://yarnpkg.com/install.sh | bash
+    && curl -o- -L https://yarnpkg.com/install.sh | bash \
+    && curl -sL https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add - \
+    && echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list \
+    && apt-get update \
+    && sudo apt-get install yarn
 
 RUN [ "cross-build-end" ]
 
