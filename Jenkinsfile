@@ -31,7 +31,7 @@ pipeline {
     stage('Publish') {
       steps {
         ansiColor('xterm') {
-          # Public
+          // Public
           sh 'docker tag $TEMP_IMAGE_NAME docker.io/jc21/$IMAGE_NAME:latest'
           sh 'docker tag $TEMP_IMAGE_NAME_ARM docker.io/$IMAGE_NAME:armhf'
           withCredentials([usernamePassword(credentialsId: 'jc21-dockerhub', passwordVariable: 'dpass', usernameVariable: 'duser')]) {
@@ -40,7 +40,7 @@ pipeline {
             sh 'docker push docker.io/jc21/$IMAGE_NAME:armhf'
           } 
 
-          # Private
+          // Private
           sh 'docker tag $TEMP_IMAGE_NAME $DOCKER_PRIVATE_REGISTRY/$IMAGE_NAME:latest'
           sh 'docker tag $TEMP_IMAGE_NAME_ARM $DOCKER_PRIVATE_REGISTRY/$IMAGE_NAME:armhf'
           withCredentials([usernamePassword(credentialsId: 'jc21-private-registry', passwordVariable: 'dpass', usernameVariable: 'duser')]) {
