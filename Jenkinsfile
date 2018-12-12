@@ -33,7 +33,7 @@ pipeline {
         ansiColor('xterm') {
           // Public
           sh 'docker tag $TEMP_IMAGE_NAME docker.io/jc21/$IMAGE_NAME:latest'
-          sh 'docker tag $TEMP_IMAGE_NAME_ARM docker.io/$IMAGE_NAME:armhf'
+          sh 'docker tag $TEMP_IMAGE_NAME_ARM docker.io/jc21/$IMAGE_NAME:armhf'
           withCredentials([usernamePassword(credentialsId: 'jc21-dockerhub', passwordVariable: 'dpass', usernameVariable: 'duser')]) {
             sh "docker login -u '${duser}' -p '$dpass'"
             sh 'docker push docker.io/jc21/$IMAGE_NAME:latest'
