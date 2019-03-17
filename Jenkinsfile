@@ -5,9 +5,9 @@ pipeline {
   }
   agent any
   environment {
-    IMAGE_NAME          = "node"
-    TEMP_IMAGE_NAME     = "node-build_${BUILD_NUMBER}"
-    TEMP_IMAGE_NAME_ARM = "node-armhf-build_${BUILD_NUMBER}"
+    IMAGE          = "node"
+    TEMP_IMAGE     = "node-build_${BUILD_NUMBER}"
+    TEMP_IMAGE_ARM = "node-armhf-build_${BUILD_NUMBER}"
   }
   stages {
     stage('Build') {
@@ -15,14 +15,14 @@ pipeline {
         stage('x86_64') {
           steps {
             ansiColor('xterm') {
-              sh 'docker build --pull --no-cache --squash --compress -t $TEMP_IMAGE_NAME .'
+              sh 'docker build --pull --no-cache --squash --compress -t ${TEMP_IMAGE} .'
             }
           }
         }
         stage('armhf') {
           steps {
             ansiColor('xterm') {
-              sh 'docker build --pull --no-cache --squash --compress -t $TEMP_IMAGE_NAME_ARM armhf/'
+              sh 'docker build --pull --no-cache --squash --compress -t ${TEMP_IMAGE_ARM} armhf/'
             }
           }
         }
@@ -31,23 +31,15 @@ pipeline {
     stage('Publish') {
       steps {
         ansiColor('xterm') {
-          // Public
-          sh 'docker tag $TEMP_IMAGE_NAME docker.io/jc21/$IMAGE_NAME:latest'
-          sh 'docker tag $TEMP_IMAGE_NAME_ARM docker.io/jc21/$IMAGE_NAME:armhf'
+          // Dockerhub
+          sh 'docker tag ${TEMP_IMAGE} docker.io/jc21/${IMAGE}:latest'
+          sh 'docker tag ${TEMP_IMAGE_ARM} docker.io/jc21/${IMAGE}:armhf'
+          
           withCredentials([usernamePassword(credentialsId: 'jc21-dockerhub', passwordVariable: 'dpass', usernameVariable: 'duser')]) {
-            sh "docker login -u '${duser}' -p '$dpass'"
-            sh 'docker push docker.io/jc21/$IMAGE_NAME:latest'
-            sh 'docker push docker.io/jc21/$IMAGE_NAME:armhf'
+            sh "docker login -u '${duser}' -p '${dpass}'"
+            sh 'docker push docker.io/jc21/${IMAGE}:latest'
+            sh 'docker push docker.io/jc21/${IMAGE}:armhf'
           } 
-
-          // Private
-          sh 'docker tag $TEMP_IMAGE_NAME $DOCKER_PRIVATE_REGISTRY/$IMAGE_NAME:latest'
-          sh 'docker tag $TEMP_IMAGE_NAME_ARM $DOCKER_PRIVATE_REGISTRY/$IMAGE_NAME:armhf'
-          withCredentials([usernamePassword(credentialsId: 'jc21-private-registry', passwordVariable: 'dpass', usernameVariable: 'duser')]) {
-            sh "docker login -u '${duser}' -p '$dpass' $DOCKER_PRIVATE_REGISTRY"
-            sh 'docker push $DOCKER_PRIVATE_REGISTRY/$IMAGE_NAME:latest'
-            sh 'docker push $DOCKER_PRIVATE_REGISTRY/$IMAGE_NAME:armhf'
-          }
         }
       }
     }
@@ -62,7 +54,7 @@ pipeline {
       sh 'figlet "FAILURE"'
     }
     always {
-      sh 'docker rmi $TEMP_IMAGE_NAME $TEMP_IMAGE_NAME_ARM'
+      sh 'docker rmi ${TEMP_IMAGE} ${TEMP_IMAGE_ARM}'
     }
   }
 }
