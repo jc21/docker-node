@@ -39,6 +39,9 @@ pipeline {
             sh "docker login -u '${duser}' -p '${dpass}'"
             sh 'docker push docker.io/jc21/${IMAGE}:latest'
             sh 'docker push docker.io/jc21/${IMAGE}:armhf'
+
+            sh 'docker rmi docker.io/jc21/${IMAGE}:latest'
+            sh 'docker rmi docker.io/jc21/${IMAGE}:armhf'
           } 
         }
       }
