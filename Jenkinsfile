@@ -34,21 +34,23 @@ pipeline {
               sh 'docker build --pull --no-cache --squash --compress -t ${TEMP_IMAGE}-${AMD64_TAG} .'
 
               // Dockerhub
-              sh 'docker tag ${TEMP_IMAGE}-${AMD64_TAG} ${PUBLIC_LATEST}'
+              sh 'docker tag ${TEMP_IMAGE}-${AMD64_TAG} ${PUBLIC_LATEST}-${AMD64_TAG}'
               withCredentials([usernamePassword(credentialsId: 'jc21-dockerhub', passwordVariable: 'dpass', usernameVariable: 'duser')]) {
                 sh "docker login -u '${duser}' -p '${dpass}'"
-                sh 'docker push ${PUBLIC_LATEST}'
-                sh 'docker rmi ${PUBLIC_LATEST}'
+                sh 'docker push ${PUBLIC_LATEST}-${AMD64_TAG}'
               }
 
               // Private
+              sh 'docker tag ${TEMP_IMAGE}-${AMD64_TAG} ${PRIVATE_LATEST}-${AMD64_TAG}'
               sh 'docker tag ${TEMP_IMAGE}-${AMD64_TAG} ${PRIVATE_LATEST}'
               withCredentials([usernamePassword(credentialsId: 'jc21-private-registry', passwordVariable: 'dpass', usernameVariable: 'duser')]) {
                 sh "docker login -u '${duser}' -p '${dpass}' docker.jc21.net.au"
+                sh 'docker push ${PRIVATE_LATEST}-${AMD64_TAG}'
                 sh 'docker push ${PRIVATE_LATEST}'
-                sh 'docker rmi ${PRIVATE_LATEST}'
               }
 
+              sh 'docker rmi ${PRIVATE_LATEST}-${AMD64_TAG}'
+              sh 'docker rmi ${PRIVATE_LATEST}'
               sh 'docker rmi ${TEMP_IMAGE}-${AMD64_TAG}'
             }
           }
@@ -116,6 +118,33 @@ pipeline {
               sh 'docker rmi ${TEMP_IMAGE}-${ARMV7_TAG}'
             }
           }
+        }
+      }
+    }
+    // ========================
+    // latest manifest
+    // ========================
+    stage('Latest Manifest') {
+      when {
+        branch 'master'
+      }
+      steps {
+        ansiColor('xterm') {
+          // =======================
+          // latest
+          // =======================
+          sh 'docker pull ${PUBLIC_LATEST}-${AMD64_TAG}'
+          sh 'docker pull ${PUBLIC_LATEST}-${ARM64_TAG}'
+          sh 'docker pull ${PUBLIC_LATEST}-${ARMV7_TAG}'
+
+          sh 'docker manifest push --purge jc21/${IMAGE}:latest || echo ""'
+          sh 'docker manifest create ${PUBLIC_LATEST} ${PUBLIC_LATEST}-${AMD64_TAG} ${PUBLIC_LATEST}-${ARM64_TAG} ${PUBLIC_LATEST}-${ARMV7_TAG}'
+
+          sh 'docker manifest annotate ${PUBLIC_LATEST} ${PUBLIC_LATEST}-${AMD64_TAG} --arch ${AMD64_TAG}'
+          sh 'docker manifest annotate ${PUBLIC_LATEST} ${PUBLIC_LATEST}-${ARM64_TAG} --os linux --arch ${ARM64_TAG}'
+          sh 'docker manifest annotate ${PUBLIC_LATEST} ${PUBLIC_LATEST}-${ARMV7_TAG} --os linux --arch arm --variant ${ARMV7_TAG}'
+
+          sh 'docker manifest push --purge ${PUBLIC_LATEST}'
         }
       }
     }
