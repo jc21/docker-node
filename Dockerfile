@@ -1,4 +1,4 @@
-FROM docker.io/node:11-slim
+FROM docker.io/node:12-slim
 
 MAINTAINER Jamie Curnow <jc@jc21.com>
 LABEL maintainer="Jamie Curnow <jc@jc21.com>"
@@ -14,3 +14,4 @@ RUN yarn global add mocha istanbul nodemon gulp mocha-bamboo-reporter tick grunt
 WORKDIR /srv/app
 
 CMD [ "node", "src/index.js", "--max_old_space_size=250" ]
+
